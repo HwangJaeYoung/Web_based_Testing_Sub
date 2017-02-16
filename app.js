@@ -7,7 +7,9 @@ var http = require('http');
 var cmd=require('node-cmd');
 var express = require('express');
 var bodyParser = require('body-parser');
+var tcpPortUsed = require('tcp-port-used');
 var config = require('./ConfigData/PreConfig');
+var randomValueGeration = require('./ConfigData/RandomValueGereration');
 var exec = require('child_process').exec, child;
 
 var app = express();
@@ -16,11 +18,85 @@ app.use(bodyParser.urlencoded({extended: false}));
 
 app.post('/TesterNode', function (request, response) {
 
+    var portUsedCheckFunc= function (portIndex) {
+        tcpPortUsed.check(portIndex, '127.0.0.1').then(function (inUse) {
+            console.log('Port usage: ' + portIndex + " " + inUse);
+
+            if(portIndex < 1024) {
+                if(inUse == true) {
+                    portIndex += 1;
+                    portUsedCheckFunc(portIndex);
+                } else {
+
+                }
+            }
+
+        }, function (err) {
+            console.error('Error on check:', err.message);
+        });
+    }
+
+    var portIndex = 1;
+
+    tcpPortUsed.check(portIndex, '127.0.0.1').then(function (inUse) {
+        console.log('Port usage: ' + portIndex + " " + inUse);
+
+        if(portIndex < 1024) {
+            if(inUse == true) { // Already in use
+                portIndex += 1;
+                portUsedCheckFunc(portIndex);
+            } else {
+                console.log("asdf123123123");
+                var currentIndex = 0;
+                var testcase = request.body['TestcaseName'];
+                var parameters = request.body['TestcaseParameter'];
+                var configPath = '/home/blossom/work/TitanRel/bin/';
+
+                console.log("asdf");
+                console.log(randomValueGeration.getRandomValue());
+                // Creating Configuration file Path
+                configPath += 'Config' + randomValueGeration.getRandomValue() + '.cfg';
+
+                console.log(configPath);
+
+                // Creating EXECUTE config
+                var execution = '\n[EXECUTE]\n';
+                for(var i = 0; i < testcase.length; i++)
+                    execution += 'OneM2M_Testcases.' + testcase[i] + '\n';
+
+                // Creating MODULE Parameter
+                var moduleParameter = '\n[MODULE_PARAMETER]\n';
+                for(var i = 0; i < parameters.length; i++)
+                    moduleParameter += parameters[i] + '\n';
+
+                var rootConfig = config.getPreconfigration();
+                rootConfig += moduleParameter;
+                rootConfig += execution;
+
+                fs.writeFile(configPath, rootConfig, function (err) {
+                    if (err)
+                        console.log('FATAL An error occurred trying to write in the file: ' + err);
+                    else {
+                        console.log('******* Unsubscription Success *******');
+                        console.log('After 10 seconds, Server is run...');
+                    }
+                });
+            }
+        }
+    }, function (err) {
+        console.error('Error on check:', err.message);
+    });
+
+    /*
     console.log(config.getPreconfigration());
 
+    var currentIndex = 0;
     var testcase = request.body['TestcaseName'];
     var parameters = request.body['TestcaseParameter'];
-    var command = 'python start.py';
+    var configPath = '/home/blossom/work/TitanRel/bin/';
+
+    // Creating Configuration file Path
+    configPath += 'Confing' + randomValueGeration.getRandomValue() + '.cfg';
 
     // Creating EXECUTE config
     var execution = '\n[EXECUTE]\n';
@@ -36,7 +112,7 @@ app.post('/TesterNode', function (request, response) {
     rootConfig += moduleParameter;
     rootConfig += execution;
 
-    fs.writeFile('/home/blossom/work/TitanRel/bin/Config.cfg', rootConfig, function (err) {
+    fs.writeFile(configPath, rootConfig, function (err) {
         if (err)
             console.log('FATAL An error occurred trying to write in the file: ' + err);
         else {
@@ -45,7 +121,9 @@ app.post('/TesterNode', function (request, response) {
         }
     });
 
-    /*
+
+    var command = 'python start.py' + ' ' + configPath;
+
     child = exec(command, {cwd: '/home/blossom/work/TitanRel/bin'}, function (error, stdout, stderr) {
         console.log('stdout: ' + stdout);
 
@@ -54,51 +132,7 @@ app.post('/TesterNode', function (request, response) {
         } else {
             response.status(200).send(stdout);
         }
-    });
-
-    /*
-    if(parameters =='NoArgument') {
-        console.log('in no argument');
-        var command = 'python start.py' + " " + testcase + " " + "NoArgument";
-        console.log(command);
-    }
-
-    else
-        var command = 'python start.py' + " " + testcase + " " + parameters;
-
-    child = exec(command, {cwd: '/home/blossom/work/TitanRel/bin'}, function (error, stdout, stderr) {
-        console.log('stdout: ' + stdout);
-
-        if (error !== null) {
-            response.status(500).send(error);
-        } else {
-            response.status(200).send(stdout);
-        }
-    }); */
-
-    /* Old Version using node-cmd npm module
-    console.log("Entering : " + request.body['TestCase']);
-    console.log("Entering2 : " + request.body['Parameters']);
-
-    // Setting the testing config file with parameter from Master node
-    var parameters = request.body['Parameters'];
-    console.log(typeof (parameters));
-        console.log(parameters[i]);
-    }
-
-    fs.writeFile('/home/blossom/work/Test/bin/parameterFile.txt', parameters, 'utf8', function(err) {
-
-        // Modifying oneM2M config file
-        cmd.get(
-            `
-                cd /home/blossom/work/Test/bin
-                python start.py
-            `, function(data){
-                console.log('the node-cmd cloned dir contains these files :\n\n', data)
-                response.status(200).send(data);
-            }
-         );
-     }); */
+    });*/
 });
 
 // Server start
