@@ -2,14 +2,13 @@
  * Created by blossom on 2/15/17.
  */
 
-exports.getPreconfigration = function () {
-
+exports.getPreconfigration = function (unusedPortNumber) {
     var configText =
         '[LOGGING]\n' +
         'FileMask := LOG_ALL | DEBUG | ERROR | USER | WARNING | TESTCASE | STATISTICS\n' +
         'ConsoleMask := DEBUG | TESTCASE | PORTEVENT | ERROR | STATISTICS | MATCHING | VERDICTOP_SETVERDICT\n' +
         'SourceInfoFormat := Single\n' +
-        'LogFile := "../log /OneM2MTesterLog-%n.log"' +
+        'LogFile := "../log /OneM2MTesterLog-%n.log"\n' +
         '#LogSourceInfo := Stack\n\n' +
 
         '[TESTPORT_PARAMETERS]\n' +
@@ -19,7 +18,7 @@ exports.getPreconfigration = function () {
 
         '[MAIN_CONTROLLER]\n' +
         'KillTimer := 1\n' +
-        'TCPPort := 9639\n';
+        'TCPPort := ' + unusedPortNumber + '\n';
 
     return configText
 }
