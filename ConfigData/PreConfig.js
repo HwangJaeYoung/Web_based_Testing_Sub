@@ -12,8 +12,8 @@ exports.getPreconfigration = function (unusedPortNumber) {
         '#LogSourceInfo := Stack\n\n' +
 
         '[TESTPORT_PARAMETERS]\n' +
-        'system.HTTP_client_port.VERIFYCERTIFICATE := "no\n"' +
-        'system.HTTP_server_port.use_notification_ASPs := "no\n"' +
+        'system.HTTP_client_port.VERIFYCERTIFICATE := "no"\n' +
+        'system.HTTP_server_port.use_notification_ASPs := "no"\n' +
         'system.*.http_debugging := "yes"\n\n' +
 
         '[MAIN_CONTROLLER]\n' +
